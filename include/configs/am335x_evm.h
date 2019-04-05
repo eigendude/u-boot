@@ -19,6 +19,9 @@
 #include <configs/ti_am335x_common.h>
 #include <linux/sizes.h>
 
+// Disable boot delay
+#define CONFIG_BOOTDELAY  0
+
 #ifndef CONFIG_SPL_BUILD
 # define CONFIG_TIMESTAMP
 #endif
