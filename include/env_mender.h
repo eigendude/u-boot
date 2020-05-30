@@ -71,9 +71,11 @@
                                                                         \
     "mender_check_saveenv_canary=1\0"                                   \
                                                                         \
-    "mender_setup="                                                     \
-    "if test \"${mender_saveenv_canary}\" != \"1\"; then "              \
-    "setenv mender_saveenv_canary 1; "                                  \
+    "mender_boot_targets=" MENDER_UBOOT_STORAGE_TARGET " " MENDER_UBOOT_INSTALL_TARGET "\0" \
+                                                                        \
+    "mender_setup_" MENDER_UBOOT_STORAGE_TARGET "=" \
+    "if test \"${mender_saveenv_canary_" MENDER_UBOOT_STORAGE_TARGET "}\" != \"1\"; then "              \
+    "setenv mender_saveenv_canary_" MENDER_UBOOT_STORAGE_TARGET " 1; "                                  \
     "saveenv; "                                                         \
     "fi; "                                                              \
     "if test \"${mender_pre_setup_commands}\" != \"\"; "                \
@@ -94,6 +96,38 @@
     "fi; "                                                                             \
     "setenv mender_kernel_root_name ${mender_boot_part_name}; "         \
     "setenv mender_uboot_root " MENDER_UBOOT_STORAGE_INTERFACE " " __stringify(MENDER_UBOOT_STORAGE_DEVICE) ":${mender_boot_part_hex}; " \
+    "setenv mender_uboot_root_name ${mender_boot_part_name}; "          \
+    "setenv expand_bootargs \"setenv bootargs \\\\\"${bootargs}\\\\\"\"; "              \
+    "run expand_bootargs; "                                             \
+    "setenv expand_bootargs; "                                          \
+    "if test \"${mender_post_setup_commands}\" != \"\"; "               \
+    "then "                                                             \
+    "run mender_post_setup_commands; "                                  \
+    "fi\0"                                                              \
+                                                                        \
+    "mender_setup_" MENDER_UBOOT_INSTALL_TARGET "=" \
+    "if test \"${mender_saveenv_canary_" MENDER_UBOOT_INSTALL_TARGET "}\" != \"1\"; then "              \
+    "setenv mender_saveenv_canary_" MENDER_UBOOT_INSTALL_TARGET " 1; "                                  \
+    "saveenv; "                                                         \
+    "fi; "                                                              \
+    "if test \"${mender_pre_setup_commands}\" != \"\"; "                \
+    "then "                                                             \
+    "run mender_pre_setup_commands; "                                   \
+    "fi; "                                                              \
+    "if test \"${mender_systemd_machine_id}\" != \"\"; "                \
+    "then "                                                             \
+    "setenv bootargs systemd.machine_id=${mender_systemd_machine_id} "  \
+    "${bootargs}; "                                                     \
+    "fi; "                                                              \
+    "setenv mender_kernel_root " MENDER_INSTALL_DEVICE_BASE "${mender_boot_part}; "    \
+    "if test ${mender_boot_part} = " __stringify(MENDER_ROOTFS_PART_A_NUMBER) "; "     \
+    "then "                                                                            \
+    "setenv mender_boot_part_name " MENDER_INSTALL_ROOTFS_PART_A_NAME "; "                     \
+    "else "                                                                             \
+    "setenv mender_boot_part_name " MENDER_INSTALL_ROOTFS_PART_B_NAME "; "                     \
+    "fi; "                                                                             \
+    "setenv mender_kernel_root_name ${mender_boot_part_name}; "         \
+    "setenv mender_uboot_root " MENDER_UBOOT_INSTALL_INTERFACE " " __stringify(MENDER_UBOOT_INSTALL_DEVICE) ":${mender_boot_part_hex}; " \
     "setenv mender_uboot_root_name ${mender_boot_part_name}; "          \
     "setenv expand_bootargs \"setenv bootargs \\\\\"${bootargs}\\\\\"\"; "              \
     "run expand_bootargs; "                                             \
@@ -146,10 +180,12 @@
 #endif
 
 #define CONFIG_MENDER_BOOTCOMMAND                                       \
-    "run mender_setup; "                                                \
-    MENDER_BOOTARGS                                                     \
-    MENDER_LOAD_KERNEL_AND_FDT                                          \
-    "${mender_boot_kernel_type} ${kernel_addr_r} - ${fdt_addr_r}; "     \
+    "for target in ${mender_boot_targets}; do "                      \
+        "run mender_setup_${target}; "                                                \
+        MENDER_BOOTARGS                                                     \
+        MENDER_LOAD_KERNEL_AND_FDT                                          \
+        "${mender_boot_kernel_type} ${kernel_addr_r} - ${fdt_addr_r}; "     \
+    "done; " \
     "run mender_try_to_recover"
 
 #endif /* !MENDER_AUTO_PROBING */
