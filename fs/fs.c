@@ -665,6 +665,7 @@ int do_size(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 		int fstype)
 {
+  printf("Here4\n");
 	unsigned long addr;
 	const char *addr_str;
 	const char *filename;
@@ -680,42 +681,72 @@ int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	if (argc > 7)
 		return CMD_RET_USAGE;
 
+	  printf("Here5\n");
 	if (fs_set_blk_dev(argv[1], (argc >= 3) ? argv[2] : NULL, fstype))
 		return 1;
 
+	  printf("Here6\n");
 	if (argc >= 4) {
+	  printf("Here7\n");
 		addr = simple_strtoul(argv[3], &ep, 16);
 		if (ep == argv[3] || *ep != '\0')
+		{
+		  printf("Here8\n");
 			return CMD_RET_USAGE;
+		}
 	} else {
+	  printf("Here9\n");
 		addr_str = env_get("loadaddr");
 		if (addr_str != NULL)
+		{
+		  printf("Here10\n");
 			addr = simple_strtoul(addr_str, NULL, 16);
+		}
 		else
+		{
+		  printf("Here11\n");
 			addr = CONFIG_SYS_LOAD_ADDR;
+		}
 	}
+	printf("Here12\n");
 	if (argc >= 5) {
+	  printf("Here13\n");
 		filename = argv[4];
 	} else {
+	  printf("Here\n14");
 		filename = env_get("bootfile");
 		if (!filename) {
+		  printf("Here15\n");
 			puts("** No boot file defined **\n");
 			return 1;
 		}
+		printf("Here17\n");
 	}
+	printf("Here18\n");
 	if (argc >= 6)
+	{
+	  printf("Here19\n");
 		bytes = simple_strtoul(argv[5], NULL, 16);
+	}
 	else
+	{
+	  printf("Here20\n");
 		bytes = 0;
+	}
 	if (argc >= 7)
 		pos = simple_strtoul(argv[6], NULL, 16);
 	else
 		pos = 0;
 
+	printf("Here21\n");
+
 #ifdef CONFIG_CMD_BOOTEFI
+
+	printf("Here22\n");
 	efi_set_bootdev(argv[1], (argc > 2) ? argv[2] : "",
 			(argc > 4) ? argv[4] : "");
 #endif
+	printf("Here24\n");
 	time = get_timer(0);
 	ret = _fs_read(filename, addr, pos, bytes, 1, &len_read);
 	time = get_timer(time);
@@ -723,6 +754,7 @@ int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 		return 1;
 
 	printf("%llu bytes read in %lu ms", len_read, time);
+	printf("Here25\n");
 	if (time > 0) {
 		puts(" (");
 		print_size(div_u64(len_read, time) * 1000, "/s");
@@ -733,6 +765,7 @@ int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	env_set_hex("fileaddr", addr);
 	env_set_hex("filesize", len_read);
 
+    printf("Here26\n");
 	return 0;
 }
 
@@ -765,6 +798,7 @@ int file_exists(const char *dev_type, const char *dev_part, const char *file,
 int do_save(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 		int fstype)
 {
+  printf("Here30\n");
 	unsigned long addr;
 	const char *filename;
 	loff_t bytes;
@@ -777,7 +811,12 @@ int do_save(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 		return CMD_RET_USAGE;
 
 	if (fs_set_blk_dev(argv[1], argv[2], fstype))
+	{
+	  printf("Here31\n");
 		return 1;
+	}
+
+	printf("Here32\n");
 
 	addr = simple_strtoul(argv[3], NULL, 16);
 	filename = argv[4];
@@ -787,11 +826,21 @@ int do_save(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	else
 		pos = 0;
 
+	printf("Here33\n");
+
 	time = get_timer(0);
 	ret = fs_write(filename, addr, pos, bytes, &len);
 	time = get_timer(time);
+
+	printf("Here34\n");
+
 	if (ret < 0)
+	{
+	  printf("Here35\n");
 		return 1;
+	}
+
+	printf("Here36\n");
 
 	printf("%llu bytes written in %lu ms", len, time);
 	if (time > 0) {
@@ -800,6 +849,8 @@ int do_save(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 		puts(")");
 	}
 	puts("\n");
+
+	printf("Here37\n");
 
 	return 0;
 }

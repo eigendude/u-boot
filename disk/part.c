@@ -371,6 +371,9 @@ int part_get_info_whole_disk(struct blk_desc *dev_desc, disk_partition_t *info)
 int blk_get_device_by_str(const char *ifname, const char *dev_hwpart_str,
 			  struct blk_desc **dev_desc)
 {
+  printf("blk_get_device_by_str(%s, %s)\n",
+      ifname != NULL ? ifname : "NULL",
+      dev_hwpart_str != NULL ? dev_hwpart_str : "NULL");
 	char *ep;
 	char *dup_str = NULL;
 	const char *dev_str, *hwpart_str;
@@ -422,6 +425,7 @@ int blk_get_device_by_str(const char *ifname, const char *dev_hwpart_str,
 #endif
 
 cleanup:
+  printf("blk_get_device_by_str - return \"%s\"\n", dup_str != NULL ? dup_str : "NULL");
 	free(dup_str);
 	return dev;
 }
@@ -432,6 +436,7 @@ int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 			     struct blk_desc **dev_desc,
 			     disk_partition_t *info, int allow_whole_dev)
 {
+  printf("Here80\n");
 	int ret = -1;
 	const char *part_str;
 	char *dup_str = NULL;
@@ -443,6 +448,7 @@ int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 	disk_partition_t tmpinfo;
 
 #ifdef CONFIG_SANDBOX
+	printf("Here81\n");
 	/*
 	 * Special-case a pseudo block device "hostfs", to allow access to the
 	 * host's own filesystem.
@@ -488,16 +494,26 @@ int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 	}
 #endif
 
+	printf("Here81\n");
+
 	/* If no dev_part_str, use bootdevice environment variable */
 	if (!dev_part_str || !strlen(dev_part_str) ||
 	    !strcmp(dev_part_str, "-"))
+	{
+	  printf("Here82\n");
 		dev_part_str = env_get("bootdevice");
+	}
+
+	printf("Here83\n");
 
 	/* If still no dev_part_str, it's an error */
 	if (!dev_part_str) {
+	  printf("Here84\n");
 		printf("** No device specified **\n");
 		goto cleanup;
 	}
+
+	printf("Here85\n");
 
 	/* Separate device and partition ID specification */
 	part_str = strchr(dev_part_str, ':');
@@ -513,7 +529,10 @@ int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 	/* Look up the device */
 	dev = blk_get_device_by_str(ifname, dev_str, dev_desc);
 	if (dev < 0)
+	{
+	  printf("Here86\n");
 		goto cleanup;
+	}
 
 	/* Convert partition ID string to number */
 	if (!part_str || !*part_str) {
@@ -521,6 +540,7 @@ int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 	} else if (!strcmp(part_str, "auto")) {
 		part = PART_AUTO;
 	} else {
+	  printf("Here87\n");
 		/* Something specified -> use exactly that */
 		part = (int)simple_strtoul(part_str, &ep, 16);
 		/*
@@ -534,6 +554,8 @@ int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 		}
 	}
 
+	printf("Here88\n");
+
 	/*
 	 * No partition table on device,
 	 * or user requested partition 0 (entire device).
@@ -541,10 +563,13 @@ int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 	if (((*dev_desc)->part_type == PART_TYPE_UNKNOWN) ||
 	    (part == 0)) {
 		if (!(*dev_desc)->lba) {
+		  printf("Here89\n");
 			printf("** Bad device size - %s %s **\n", ifname,
 			       dev_str);
 			goto cleanup;
 		}
+
+		printf("Here90\n");
 
 		/*
 		 * If user specified a partition ID other than 0,
@@ -552,37 +577,50 @@ int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 		 * it's an error.
 		 */
 		if ((part > 0) || (!allow_whole_dev)) {
+		  printf("Here91\n");
 			printf("** No partition table - %s %s **\n", ifname,
 			       dev_str);
 			goto cleanup;
 		}
+
+		printf("Here92\n");
 
 		(*dev_desc)->log2blksz = LOG2((*dev_desc)->blksz);
 
 		part_get_info_whole_disk(*dev_desc, info);
 
 		ret = 0;
+
+		printf("Here93\n");
 		goto cleanup;
 	}
+
+	printf("Here94\n");
 
 	/*
 	 * Now there's known to be a partition table,
 	 * not specifying a partition means to pick partition 1.
 	 */
 	if (part == PART_UNSPECIFIED)
+	{
+	  printf("Here95\n");
 		part = 1;
+	}
 
 	/*
 	 * If user didn't specify a partition number, or did specify something
 	 * other than "auto", use that partition number directly.
 	 */
 	if (part != PART_AUTO) {
+	  printf("Here96\n");
 		ret = part_get_info(*dev_desc, part, info);
 		if (ret) {
+		  printf("Here97\n");
 			printf("** Invalid partition %d **\n", part);
 			goto cleanup;
 		}
 	} else {
+	  printf("Here98\n");
 		/*
 		 * Find the first bootable partition.
 		 * If none are bootable, fall back to the first valid partition.
@@ -621,12 +659,17 @@ int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 			if (p == MAX_SEARCH_PARTITIONS + 1)
 				*info = tmpinfo;
 		} else {
+		  printf("Here99\n");
 			printf("** No valid partitions found **\n");
 			ret = -1;
 			goto cleanup;
 		}
 	}
+
+	printf("Here100\n");
+
 	if (strncmp((char *)info->type, BOOT_PART_TYPE, sizeof(info->type)) != 0) {
+	  printf("Here101\n");
 		printf("** Invalid partition type \"%.32s\""
 			" (expect \"" BOOT_PART_TYPE "\")\n",
 			info->type);
@@ -637,10 +680,12 @@ int blk_get_device_part_str(const char *ifname, const char *dev_part_str,
 	(*dev_desc)->log2blksz = LOG2((*dev_desc)->blksz);
 
 	ret = part;
+	printf("Here102\n");
 	goto cleanup;
 
 cleanup:
 	free(dup_str);
+	printf("Here103\n");
 	return ret;
 }
 

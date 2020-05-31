@@ -203,9 +203,14 @@ int env_load(void)
 			printf("OK\n");
 			return 0;
 		} else if (ret == -ENOMSG) {
+		  printf("Here1\n");
 			/* Handle "bad CRC" case */
 			if (best_prio == -1)
+			{
+	          printf("Here2\n");
 				best_prio = prio;
+			}
+            printf("Here3\n");
 		} else {
 			debug("Failed (%d)\n", ret);
 		}
