@@ -6,6 +6,7 @@
  * Based vaguely on the Linux code
  */
 
+#define DEBUG
 #include <config.h>
 #include <common.h>
 #include <command.h>

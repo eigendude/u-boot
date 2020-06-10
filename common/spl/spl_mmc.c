@@ -5,6 +5,8 @@
  *
  * Aneesh V <aneesh@ti.com>
  */
+
+#define DEBUG
 #include <common.h>
 #include <dm.h>
 #include <spl.h>
