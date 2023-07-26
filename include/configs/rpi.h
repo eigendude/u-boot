@@ -31,4 +31,9 @@
  */
 #define CFG_SYS_SDRAM_SIZE		SZ_128M
 
+/* Environment */
+ 
+#define CONFIG_BOOTCOUNT_ENV
+#define CONFIG_BOOTCOUNT_LIMIT
+
 #endif
