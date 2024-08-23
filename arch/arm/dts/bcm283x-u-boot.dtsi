@@ -20,10 +20,27 @@
 	bootph-all;
 };
 
-&uart0_gpio14 {
-	bootph-all;
-};
+/*
+ * These lines have been commented out to bypass the initialization of the
+ * GPIO serial interfaces during U-Boot. This is a temporary workaround to
+ * allow U-Boot to compile and boot successfully on the Raspberry Pi 5, as
+ * specifying these GPIO pins for UART may cause compilation errors or prevent
+ * U-Boot from functioning correctly.
+ *
+ * This configuration effectively disables serial output over the GPIO pins
+ * for U-Boot, but note that this does not affect the kernel's use of UART0
+ * if `dtparam=uart0_console` is specified in config.txt.
+ *
+ * Removing these lines might be necessary for successful booting and operation
+ * in U-Boot for Raspberry Pi 5 until full support is added for this platform.
+ *
+ * Credit to pyxlwuff for identifying this workaround.
+ */
 
-&uart1_gpio14 {
-	bootph-all;
-};
+//&uart0_gpio14 {
+//	bootph-all;
+//};
+
+//&uart1_gpio14 {
+//	bootph-all;
+//};
